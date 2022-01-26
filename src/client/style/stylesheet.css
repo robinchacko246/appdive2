@@ -1,0 +1,299 @@
+@import "font-awesome";
+body {
+    font-family: "Lato", sans-serif;
+}
+
+#map {
+    height: 100%;
+    padding-left: 360;
+}
+
+.main {
+    margin-left: 160px;
+    /* Same as the width of the sidenav */
+    font-size: 28px;
+    /* Increased text to enable scrolling */
+    padding: 0px 10px;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+input:focus-visible {
+    outline: none;
+}
+input::placeholder {
+    color: grey;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+/* Custom CSS */
+
+.navbar-custom {
+    color: #ffffff;
+    background-color: #3f51b5;
+    height: 8vh;
+}
+
+.signin-custom {
+    background-color: #3f51b5;
+}
+
+.image-div {
+    height: auto;
+    border-radius: 0.3rem;
+}
+
+.image-custom {
+    display: block;
+    margin: auto;
+    width: 45%;
+    border-radius: 0.25rem;
+}
+
+.image-custom2 {
+    padding-top: 20px;
+}
+
+.img-thumb-custom {
+    background-color: rgb(255, 255, 255);
+}
+
+.row-custom {
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin-top: 0.5%;
+}
+
+.info-div-content {
+    color: black;
+}
+
+.popupDivBody {
+    max-height: 500px;
+    padding-bottom: 30px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 5px grey;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #f9f9f9;
+    border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #f9f9f9;
+}
+
+.popup-custom {
+    position: absolute;
+    top: 20%;
+    left: 33%;
+    width: 40%;
+    /* background-color: rgb(255, 255, 255); */
+    border-radius: 0.25rem;
+    padding-left: 0%;
+    padding-right: 0%;
+    height: 450px;
+}
+
+.close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+}
+
+.loginPic {
+    margin-bottom: 10px;
+}
+
+.usernameDiv {
+    overflow: auto;
+    background-color: #3f51b5;
+    cursor: pointer;
+    border-radius: 0.25rem;
+    padding: 10px 0px;
+}
+
+@media screen and (max-height: 450px) {
+    .sidenav {
+        padding-top: 15px;
+    }
+    .sidenav a {
+        font-size: 18px;
+    }
+}
+
+.add_btn {
+    position: absolute;
+    right: 0%;
+    bottom: 30%;
+    width: 56px;
+    height: 56px;
+    overflow: visible;
+    text-align: center;
+    line-height: 56px;
+    cursor: pointer;
+    font-size: 28px;
+    color: rgba(255, 255, 255, 1);
+    border-radius: 50px;
+    background-color: #3f51b5;
+}
+
+.add_btn:before {
+    position: relative;
+    z-index: 100;
+    content: "+";
+}
+
+@media screen and (max-height: 768px) {
+    .add_btn {
+        right: 0.3%;
+    }
+}
+
+#post-wrap {
+    position: absolute;
+    top: 20%;
+    left: 33%;
+    width: 40%;
+    background-color: rgb(255, 255, 255);
+    border-radius: 0.25rem;
+    padding-left: 0%;
+    padding-right: 0%;
+    height: auto;
+    display: block;
+}
+.title_wrap {
+    width: 100%;
+    text-align: center;
+    background-color: #3f51b5;
+    color: white;
+}
+
+#selectedImageContainer {
+    cursor: pointer;
+}
+
+.img_wrap {
+    width: 100px;
+    height: 100px;
+    color: rgba(255, 255, 255, 1);
+    background-color: gray;
+    position: relative;
+    overflow: visible;
+    cursor: pointer;
+    text-align: center;
+    line-height: 56px;
+    font-size: 45px;
+}
+
+.img_wrap:before {
+    position: relative;
+    z-index: 100;
+    content: "+";
+    top: 20px;
+}
+.input_wrap {
+    border: none;
+    border-bottom: 1px solid grey;
+    height: 25px;
+    width: 70%;
+    padding: 0 15px;
+}
+.input_desc {
+    border: none;
+    border-bottom: 1px solid grey;
+    height: 25px;
+    width: 100%;
+    padding: 0 15px;
+}
+.label_create {
+    color: gray;
+    font-weight: bold;
+    font-size: 20px;
+}
+.btn_submit {
+    width: 100%;
+    text-align: center;
+    background-color: #3f51b5;
+    color: white;
+}
+.btn_submit:hover {
+    color: white;
+}
+
+#submit_spinner {
+    margin: auto;
+    font-size: 2.5rem;
+}
+
+#map-canvas {
+    height: 90vh;
+    margin: auto;
+    border: 5px black dashed;
+    border-radius: 25px;
+    top: 25px;
+    width: 100%;
+    position: fixed;
+    z-index: 200;
+}
+
+#map-canvas .centerMarker {
+    position: absolute;
+    /*url of the marker*/
+    background: url(http://maps.google.com/mapfiles/ms/icons/blue-dot.png) no-repeat;
+    /*center the marker*/
+    top: 50%;
+    left: 50%;
+    z-index: 200;
+    /*fix offset when needed*/
+    margin-left: -10px;
+    margin-top: -34px;
+    /*size of the image*/
+    height: 34px;
+    width: 30px;
+    cursor: pointer;
+}
+#map-canvas .useLocation {
+    position: absolute;
+    bottom: 5%;
+    right: 0;
+    z-index: 200;
+    height: 66px;
+    width: 40%;
+    cursor: pointer;
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 64px;
+}
+
+.g_ads{
+    position: absolute;
+    bottom: 0%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    display: flex;
+    justify-content: center;
+    align-items:center;
+}

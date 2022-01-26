@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="./style/stylesheet.css">
+</head>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="RESTIntegration.js"></script>
+<script>
+    if (document.cookie.indexOf("userIdMe=") < 0) {
+        window.location.href = "./login.html";
+    }
+    // get all of the posts for the current user
+    var myId = document.cookie.replace(/(?:(?:^|.*;\s*)userIdMe\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    getUserPosts(myId).then(res => {
+        if (res.statusCode != 200) {
+            console.log('Error grabbing posts initially')
+        }
+        var posts = res;
+        console.log(posts);
+
+        sayHi = (id) => {
+            deleteUserPosts(id)
+                .then(res => {
+                    window.location.reload();
+                }).catch(err => {
+                    console.log(err);
+                })
+        }
+        // add images
+        for (var i = 0; i < posts.length; i++) {
+            var imageDiv = document.createElement("div");
+            $(imageDiv).attr({
+                "class": "col-4 image-div img-thumbnail img-thumb-custom ",
+            });
+
+            imageDiv.innerHTML = "<img src='" + posts[i].picturePost + "' class='image-custom'/>" +
+                "<div class='info-div'><p><h5>Title: </h5>'" + posts[i].titlePost + "'</p>" +
+                "<p><h5>Description: </h5>'" + posts[i].descriptionPost + "'</p></div>"
+                + "<button id='deletePost'  type='button' class='btn btn-danger' onclick='sayHi(" + posts[i].idPost + ")' > Delete Post </button>";
+            var container = document.getElementById("container");
+            container.appendChild(imageDiv);
+        }
+    });
+
+    function logout() {
+        document.cookie = "userIdMe=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
+</script>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <a class="navbar-brand" href="#">Diver Now</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+            aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="./main.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./postHistory.html">My Posts</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./aboutUs.html">About Us</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./login.html" onclick="logout()">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div id="container" class="container-fluid row-custom">
+        <!-- Images go in here-->
+        <!-- <button type="button" class="btn btn-danger">Danger</button> -->
+    </div>
+</body>
+
+</html>

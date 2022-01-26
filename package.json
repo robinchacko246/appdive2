@@ -1,0 +1,26 @@
+{
+  "name": "divernow",
+  "version": "1.0.0",
+  "description": "Diver Now Rest API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "startDev": "node src/DevServer.js"
+  },
+  "author": "No Slouch Developers",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^1.19.1"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.903.0",
+    "bcrypt": "^5.0.0",
+    "dotenv": "^9.0.0",
+    "express": "^4.17.1",
+    "moment": "^2.29.1",
+    "multer": "^1.4.2",
+    "mysql": "^2.18.1",
+    "socket.io": "^4.2.0"
+  }
+}

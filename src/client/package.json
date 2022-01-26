@@ -1,0 +1,9 @@
+{
+  "name": "divernow",
+  "version": "1.0.0",
+  "description": "divernow landing page",
+  "main": "index.js",
+  "repository": "https://github.com/medzomethod/DiverNow-LandingPage.git",
+  "author": "Vinay Rawat",
+  "license": "UNLICENSED"
+}

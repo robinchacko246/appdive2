@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+<!-- Custom css -->
+<link rel="stylesheet" href="./style/stylesheet.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<head>
+    <title>Diver Now</title>
+    <meta charset="utf-8">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.893.0.min.js"></script>
+    <script src="RESTIntegration.js"></script>
+    <script data-ad-client="ca-pub-1872450428416738" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeYvd6TD7Y20mTomE__mo7_6P7OMtw5WA&callback=initialize"
+        async defer></script>
+    <script>
+        if (document.cookie.indexOf("userIdMe=") < 0) {
+            window.location.href = "./login.html";
+        }
+        var myId = document.cookie.replace(/(?:(?:^|.*;\s*)userIdMe\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        var recenttime = 0
+        var postsMap = new Map() // a map where the key is a marker and the value is the post
+        var form = document.querySelector('form');
+        var map;
+        var map2;
+        var currentLatitude;
+        var currentLongitude;
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(geoSuccess, geoError);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+        getLocation();
+
+        function geoSuccess(position) {
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+            currentLatitude = lat;
+            currentLongitude = lng
+        }
+
+        function geoError() {
+            alert("Geocoder failed. check your browser setting, allow location service and try again.");
+        }
+
+        const createPostCustomOrigin = {
+            latitude: 0,
+            longitude: 0
+        }
+
+        function initialize() {
+            initMap();
+            initMap2();
+        }
+
+
+        function setPosts(posts) {
+            if (!posts) {
+                return false
+            }
+            for (post of posts) {
+                singleMarkAssigner(post)
+            }
+        }
+
+
+        function singleMarkAssigner(post) {
+            var marker = new google.maps.Marker({
+                position: {
+                    lat: post.latitudePost,
+                    lng: post.longitudePost
+                },
+                map: map,
+                icon: {
+                    url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                },
+                title: post.title
+            });
+            postsMap.set(marker, post);
+           
+            marker.addListener('click', function () {
+                var x = document.getElementById("popupDiv");
+                x.innerHTML = "";
+                if (x.style.display === "none") {
+                    x.style.display = "block";
+                }
+                var imageDiv = document.createElement("div");
+                $(imageDiv).attr({
+                    "class": "image-div img-thumb-custom ",
+                });
+                getLoginInfo(postsMap.get(this).idUser).then(res => {
+                    var userName = res[0].nameUser;
+                    
+                    imageDiv.innerHTML =
+                    `<nav class='navbar navbar-expand-lg navbar-dark navbar-custom justify-content-center'
+                style='border-radius:0.25rem; height:8vh;'>
+                <p class='justify-content-center'>
+                    ${postsMap.get(this).titlePost}
+                </p><button class='close' onclick='closePopup()'><em class='fa fa-times'
+                        style='color: white;padding:5px'></em></button>
+            </nav>
+            <div class='popupDivBody'><a href='./userHistory.html'><img class='image-custom image-custom2' /><img
+                        src=${postsMap.get(this).picturePost} class='image-custom center' /></a>
+                <div class='info-div-content' style='margin:10px; margin-top:15px'>
+                    <div class='container py-3 mt-3'>
+                        <div class='col-6' style='float:right'>
+                            <p style='font-size:14px;opacity: 0.5;'>Long:
+                                ${postsMap.get(this).longitudePost} </p>
+                            <p style='font-size:14px;opacity: 0.5;'>Lat: ${postsMap.get(this)
+                                .latitudePost} </p>
+                        </div>
+                        <div class='col-6'>
+                            <div class='usernameDiv' style='color:white; text-align: center;'>${userName}</div>
+                        </div>
+                    </div>
+                    <div style='margin-top:40px; margin-bottom 15px; bottom: 1%'>
+                        <p>
+                            ${postsMap.get(this).descriptionPost} </p>
+                    </div>
+                </div>
+                <div class='d-flex'>
+                    <div class='col-6'>
+                        <div onclick='sendMail(myId); return false' class='usernameDiv'
+                            style='color:white; text-align: center;'>Report Post</div>
+                    </div>
+                    <div class='col-6'>
+                        <div class='usernameDiv' onclick='blockuser();' style='color:white; text-align: center;'>Block
+                            User</div>
+                    </div>
+                </div>
+            </div>`;
+
+                var container = document.getElementById("popupDiv");
+                container.appendChild(imageDiv);
+                var cookie = postsMap.get(this).idUser;
+                document.cookie = "userID=" + cookie;
+                });
+                
+            })
+        }
+
+
+        function initMap(newPost = false) {
+            if (!newPost) {
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: {
+                        lat: 40.7062,
+                        lng: -78.3062
+                    },
+                    zoom: 5
+                });
+            }
+            getPost(myId, recenttime).then(res => {
+                if (res.statusCode != 200) {
+                    console.log('Error grabbing posts initially')
+                }
+                var posts = res;
+                totalPosts = posts.length;
+                console.log('posts', posts);
+                setPosts(posts);
+
+            });
+        }
+
+        function sendMail(id) {
+            window.open('mailto:divernowli@gmail.com?&subject=Report%20Post%20#' + id +
+                '&body=I%20would%20like%20to%20report%20this%20post');
+        }
+
+        function closePopup() {
+            var x = document.getElementById("popupDiv");
+            if (x.style.display === "block") {
+                x.style.display = "none";
+                x.innerHTML = "";
+            }
+        }
+
+        function getCookie(name) {
+            var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+            return v ? v[2] : null;
+        }
+
+        function blockuser() {
+            var userid = getCookie('userIdMe');
+            var blockedidUser = getCookie('userID');
+            getBlock(userid, blockedidUser)
+                .then(res => { 
+                    alert("Successfully blocked this user");
+                    location.reload();
+                   
+                }).catch(err => {
+                    console.log(err);
+                    alert("Error found to block this user");
+                })
+        }
+
+
+        function logout() {
+            document.cookie = "userIdMe=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        }
+
+        function togglePostCreate() {
+            var x = document.getElementById("post-wrap");
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        }
+
+        function closeCreate() {
+            var x = document.getElementById("post-wrap");
+            if (x.style.display === "block") {
+                x.style.display = "none";
+            }
+        }
+
+        function createPostStyleHandler(isSpinnerShown, isButtonShown) {
+            const createPostSubmitBtn = document.getElementById("createPostSubmitBtn");
+            const submit_spinner = document.getElementById("submit_spinner");
+            createPostSubmitBtn.style.display = isButtonShown;
+            submit_spinner.style.display = isSpinnerShown;
+        }
+
+        async function createPostHandler() {
+            createPostStyleHandler("block", "none", "grey");
+            let pictureAddress = '';
+            let finalCoords = {
+                lat: 0,
+                long: 0
+            };
+            let uploadToS3URL = '';
+            const image = document.getElementById("selectedFile").files[0];
+            const title = document.getElementById("title").value;
+            const description = document.getElementById("description").value;
+            const mylocation = document.getElementById("mylocation").checked;
+            const anotherlocation = document.getElementById("anotherlocation").checked;
+            const customOrigin = createPostCustomOrigin;
+            if (!image) {
+                alert("no Image selected")
+                createPostStyleHandler("none", "block");
+                return false;
+            }
+
+            if (!mylocation && !anotherlocation) {
+                alert("No Location Selected");
+                createPostStyleHandler("none", "block");
+                return false;
+            }
+            const imageType = image.type.split('/');
+            const extention = imageType[1];
+            const url = "https://divernowapp.s3.us-east-2.amazonaws.com";
+            await getIncrement(myId).then(response => {
+                const data = response;
+                const increasedValue = data[0].incrementUser;
+                uploadToS3URL = `${myId}-${increasedValue}.${extention}`;
+                pictureAddress = `${url}/${myId}-${increasedValue}.${extention}`;
+                if (mylocation) {
+                    finalCoords.lat = currentLatitude;
+                    finalCoords.long = currentLongitude;
+                } else if (anotherlocation) {
+                    finalCoords.lat = customOrigin.latitude;
+                    finalCoords.long = customOrigin.longitude;
+                }
+                getAddPost(title, description, finalCoords.long, finalCoords.lat, pictureAddress, myId)
+                    .then(res => {
+                        uploadImage(image, uploadToS3URL).then(res => {
+                            console.log('image uploaded res', res)
+                            alert("Post Created Successfully");
+                            createPostStyleHandler("none", "block");
+                            initMap(true);
+                            map = new google.maps.Map(document.getElementById('map'), {
+                                center: {
+                                    lat: finalCoords.lat,
+                                    lng: finalCoords.long
+                                },
+                                zoom: 5
+                            });
+                            document.getElementById("form").reset();
+                            const imagePlusIcon = document.getElementById('imagePlusIcon');
+                            const selectedImageContainer = document.getElementById('selectedImageContainer');
+                            const selectedImage = document.getElementById('selectedImage');
+
+                            imagePlusIcon.style.display = "block";
+                            selectedImage.src = "";
+                            selectedImageContainer.style.display = "none";
+                            togglePostCreate();
+                            
+                        }).catch(err => {
+                            console.log('image Uplaod Error', err)
+                            createPostStyleHandler("none", "block");
+                        })
+
+                    }).catch(err => {
+                        alert("Opps! there is an error creating post, please try again...!!")
+                        console.log('err', err);
+                        createPostStyleHandler("none", "block");
+                    })
+            }).catch(err => {
+                console.log('err', err)
+                createPostStyleHandler("none", "block");
+            });
+        }
+
+        function pickLocation() {
+            var x = document.getElementById("map-canvas");
+            if (x.style.display === "none") {
+                x.style.display = "flex";
+                x.style.position = "fixed";
+                var marker;
+
+                if ("geolocation" in navigator) {
+                    /* geolocation is available */
+                    // One-shot position request.
+                    navigator.geolocation.getCurrentPosition(callback, error);
+                } else {
+                    /* geolocation IS NOT available */
+                    console.warn("geolocation IS NOT available");
+                }
+
+                function error(err) {
+                    console.warn('ERROR(' + err.code + '): ' + err.message);
+                };
+
+                function callback(position) {
+                    var lat = position.coords.latitude;
+                    var lon = position.coords.longitude;
+                    createPostCustomOrigin.latitude = lat;
+                    createPostCustomOrigin.longitude = lon;
+                    var latLong = new google.maps.LatLng(lat, lon);
+                    map2.setZoom(5);
+                    map2.setCenter(latLong);
+                }
+                google.maps.event.addDomListener(window, 'load', initMap2);
+
+
+            }
+        }
+
+        function closeMap() {
+            var x = document.getElementById("map-canvas");
+            if (x.style.display === "flex") {
+                x.style.display = "none";
+            }
+        }
+
+        function initMap2() {
+            console.log(":init map 2");
+            var mapOptions = {
+                center: new google.maps.LatLng(0, 0),
+                zoom: 5
+            };
+            map2 = new google.maps.Map(document.getElementById("map-canvas"),
+                mapOptions);
+            google.maps.event.addListener(map2, 'center_changed', function () {
+                createPostCustomOrigin.latitude = map2.getCenter().lat();
+                createPostCustomOrigin.longitude = map2.getCenter().lng();
+            });
+            $('<div/>').addClass('centerMarker').appendTo(map2.getDiv())
+                //do something onclick
+                .click(function () {
+                    var that = $(this);
+                    if (!that.data('win')) {
+                        that.data('win', new google.maps.InfoWindow({
+                            content: 'this is the center'
+                        }));
+                        that.data('win').bindTo('position', map2, 'center');
+                    }
+                    that.data('win').open(map2);
+                });
+
+            var submitDiv = document.createElement("div");
+            $(submitDiv).attr({
+                "class": "useLocation",
+            });
+            submitDiv.innerHTML =
+                "<div class='col-6'><div onclick='closeMap();' class='usernameDiv' style='color:white; text-align: center;'>Cancel</div></div><div class='col-6'><div class='usernameDiv' style='color:white; text-align: center;'>Use Location</div></div>";
+
+            $(submitDiv).appendTo(map2.getDiv())
+                //do something onclick
+                .click(function () {
+                    currentLatitude = map2.getCenter().lat();
+                    currentLongitude = map2.getCenter().lng();
+                    console.log(currentLongitude, currentLatitude);
+                    closeMap();
+                });
+            // var submitDiv = document.getElementsByClassName("useLocation");
+        }
+
+        function getImageFromDeviceHandler() {
+            document.getElementById('selectedFile').click();
+        }
+
+        function fileData(obj) {
+            const response = document.getElementById("selectedFile").files[0];
+            const imagePlusIcon = document.getElementById('imagePlusIcon');
+            const selectedImageContainer = document.getElementById('selectedImageContainer');
+            const selectedImage = document.getElementById('selectedImage');
+            if (response) {
+                let src = URL.createObjectURL(response);
+                imagePlusIcon.style.display = "none";
+                selectedImage.src = src;
+                selectedImageContainer.style.display = "block";
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <img src="img/imgNoWords/App Icon Main - 36x36 inside.png" alt="logo" />
+        <a class="navbar-brand" href="#">Diver Now</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+            aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="./main.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./postHistory.html">My Posts</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./aboutUs.html">About Us</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./login.html" onclick="logout()">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <!-- map -->
+    <div id="map" style="height: 92vh;"></div>
+    <!-- Popup for marker posts in center of the screen -->
+    <div id='popupDiv' class="center col-4 popup-custom" style="display: none;">
+
+    </div>
+    <div class="add_btn" onclick="togglePostCreate();"></div>
+    <div id="post-wrap" style="display:none">
+        <div class="title_wrap p-2">
+            <h2>Create Post</h2>
+            <button class='close' onclick='closeCreate()' style="top:15px; right:15px"><em class="fa fa-times"
+                    style="color: white;"></em></button>
+
+        </div>
+        <form id="form" enctype="multipart/form-data" onsubmit="return false">
+            <div class="d-flex w-100 p-3 justify-content-between align-items-center">
+                <div class="img_wrap" id="imagePlusIcon" onclick="getImageFromDeviceHandler()">
+                    <input type="file" id="selectedFile" accept="image/x-png,image/gif,image/jpeg" name="pictureAddress"
+                        onchange="fileData(this)" style="display: none;" />
+                </div>
+                <div onclick="getImageFromDeviceHandler()" id="selectedImageContainer" style="display: none;">
+                    <img src="./img/App Icon Main - 512x512 inside.png" width="100" id="selectedImage" height="100"
+                        alt="selected Image" />
+                </div>
+                <input class="input_wrap" type="text" name="title" id="title" placeholder="Title" required />
+            </div>
+            <div class="d-flex flex-column w-100 p-3 justify-content-between ">
+                <label class="label_create" for="description">Description</label>
+                <input class="input_desc" type="text" name="description" id="description" required />
+            </div>
+            <div class="d-flex w-100 p-5 justify-content-between align-items-center flex-wrap">
+                <div>
+                    <input type="radio" id="mylocation" name="location" value="mylocation">
+                    <label for="mylocation">Use my location</label>
+                </div>
+                <div>
+                    <input type="radio" id="anotherlocation" name="location" value="anotherlocation"
+                        onclick="pickLocation()">
+                    <label for="anotherlocation">Use another location</label><br>
+                </div>
+            </div>
+            <div class="mb-4 p-2 d-flex w-100 justify-content-between align-items-center">
+                <em class="fa fa-spinner fa-spin" id="submit_spinner" style="display: none;"></em>
+                <input type='button' id="createPostSubmitBtn" onclick="createPostHandler()" class="btn btn_submit"
+                    value="Post">
+            </div>
+        </form>
+
+    </div>
+    <div id="map-canvas" style="display:none"></div>
+    <div class="g_ads">
+        <!-- This is for google adsense -->
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- banner_ads -->
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-1872450428416738"
+             data-ad-slot="8390084507"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+</body>
+
+</html>
