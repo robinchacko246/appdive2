@@ -104,7 +104,9 @@ io.on('connection', socket => {
   
     // Listen for chatMessage
     socket.on('chatMessage', ({ msg}) => {
+
       const user = getCurrentUser(socket.id);
+      if(!user) return 0;
       const userName = user.username;
 
       // console.log("typingUsers:", typingUsers[userName] = 1, "user:", user)
