@@ -5,13 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/server.js",
-    "startDev": "node src/DevServer.js"
+    "start": "nodemon src/server.js",
+    "startDev": "nodemon src/DevServer.js"
   },
   "author": "No Slouch Developers",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^1.19.1"
+    "nodemon": "^1.19.4"
   },
   "dependencies": {
     "aws-sdk": "^2.903.0",
