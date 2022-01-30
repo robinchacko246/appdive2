@@ -4,16 +4,18 @@ const util = require('util');
 
 
 
-module.exports.saveMessage = async function (user,msg,pool) {  //get likes of posts
+module.exports.saveMessage = async function (from_user_id,to_user_id,room,msg,pool) {  //get likes of posts
     try {
-        console.log("inside controller",user);
+       
+        console.log("insde save message");
         let data=[];
         data.push(msg);
 
-        data.push(user.username);
-        data.push(user.room)
-        data.push(user.room_id)
-        
+        data.push(from_user_id);
+        data.push(to_user_id)
+        data.push(room)
+        console.log("data is==========================>",data);
+
         var result = await pool.query({
           sql: "INSERT INTO messages (message, from_user_id, to_user_id,room) VALUES (?)",
           values: [data]
@@ -64,8 +66,13 @@ module.exports.allMessages = async function (con, req, res) {  //get messages
 
        
         `SELECT (select count(m1.id)  from messages m1 where (m1.from_user_id =${user_id} or m1.to_user_id=${user_id}) and m1.read=0 group by m.room) as notReadCount, 
-        m.*  FROM messages m left join Users u on u.idUser=m.to_user_id where 
-        m.id in ( SELECT max(id) FROM messages where from_user_id=${user_id} or to_user_id=${user_id} group by room) group by room order by id desc;`, 
+        m.*  FROM messages m 
+        
+        left join Users u on u.idUser=m.to_user_id
+        
+        where   
+        m.id in ( SELECT max(id) FROM messages where from_user_id=${user_id} or to_user_id=${user_id} group by room) 
+        group by room order by id desc;`, 
         
         
         function(err, result, fields) {
@@ -74,8 +81,8 @@ module.exports.allMessages = async function (con, req, res) {  //get messages
             if (err) {
                 res.send('{"error":"message fetch error."} ', 400); // If it sends an error, this line will be sent
             } else {
-             
-
+                  
+               
                 res.send(JSON.stringify(result), 200);
 
             }
@@ -154,7 +161,7 @@ var r = (Math.random() + 1).toString(36).substring(7);
 
  var result =  await pool.query(`Select count(r.id) as count,room from rooms r where (user1=${u1} or user2=${u1}) and  (user1=${u2} or user2=${u2})`);
 
-console.log(result);
+
 if(result[0].count==0)
 {
 
@@ -168,4 +175,15 @@ else
 
 
 
+}
+
+
+module.exports.getUserNames = async function (from_user_id, pool) {  //get likes of posts
+    try {
+        pool.query = util.promisify(pool.query);
+        var result = await pool.query(`SELECT * FROM Users WHERE idUser=${from_user_id}`);
+        return result;
+      } catch (err) {
+        throw new Error(err);
+      }
 }
